@@ -20,14 +20,19 @@
           inherit system;
           overlays = [
             (import rust-overlay)
-            (final: prev: {
-              rustc = prev.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-              cargo = prev.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-            })
           ];
         };
 
-        foo = pkgs.callPackage ./Cargo.nix { };
+        rustToolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
+
+        foo = pkgs.callPackage ./Cargo.nix {
+          buildRustCrateForPkgs =
+            p:
+            p.buildRustCrate.override {
+              rustc = rustToolchain;
+              cargo = rustToolchain;
+            };
+        };
 
         shell = pkgs.mkShell {
           inputsFrom = [
